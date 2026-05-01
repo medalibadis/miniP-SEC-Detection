@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import os
 import argparse
-import tensorflow as tf
 from src.config import *
 from src.data_preprocessing import load_data, preprocess_data, split_data
 from src.feature_engineering import FeatureExtractor
@@ -91,6 +90,7 @@ def main(run_bert=False, optimize_xgb=False):
         logits = bert_model.predict(
             {'input_ids': X_test_bert['input_ids'], 'attention_mask': X_test_bert['attention_mask']}
         ).logits
+        import tensorflow as tf
         y_prob_bert = tf.nn.softmax(logits).numpy()
         y_pred_bert = np.argmax(y_prob_bert, axis=1)
         

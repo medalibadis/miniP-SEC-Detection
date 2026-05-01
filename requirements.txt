@@ -4,11 +4,6 @@ scikit-learn
 xgboost
 matplotlib
 seaborn
-tensorflow
-keras
-transformers<5.0
-tf-keras
 tqdm
-pypdf
 joblib
 streamlit

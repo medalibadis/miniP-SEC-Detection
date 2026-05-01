@@ -2,14 +2,19 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-import tensorflow as tf
-# Use tf_keras for compatibility with transformers 4.x
-import tf_keras as keras
-from tf_keras.models import Sequential
-from tf_keras.layers import Embedding, LSTM, Dense, Dropout, SpatialDropout1D
-from tf_keras.preprocessing.text import Tokenizer
-from tf_keras.preprocessing.sequence import pad_sequences
-from transformers import BertTokenizer, TFBertForSequenceClassification
+
+# Optional Deep Learning Imports for Cloud Compatibility
+try:
+    import tensorflow as tf
+    import tf_keras as keras
+    from tf_keras.models import Sequential
+    from tf_keras.layers import Embedding, LSTM, Dense, Dropout, SpatialDropout1D
+    from tf_keras.preprocessing.text import Tokenizer
+    from tf_keras.preprocessing.sequence import pad_sequences
+    from transformers import BertTokenizer, TFBertForSequenceClassification
+    DL_AVAILABLE = True
+except ImportError:
+    DL_AVAILABLE = False
 
 def get_ml_models():
     """Returns a dictionary of ML models."""
