@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 import os
 from src.data_preprocessing import clean_url
+from src.feature_engineering import FeatureExtractor
 
 # Page config
 st.set_page_config(page_title="SafeURL AI - Cyber Defense", page_icon="🛡️", layout="wide")
@@ -69,12 +70,17 @@ st.markdown("""
 # Resource Loading
 @st.cache_resource
 def load_resources():
-    model_path = os.path.join("models", "best_rf_model.pkl")
-    extractor_path = os.path.join("models", "feature_extractor.pkl")
-    le_path = os.path.join("models", "label_encoder.pkl")
-    if os.path.exists(model_path):
-        return joblib.load(model_path), joblib.load(extractor_path), joblib.load(le_path)
-    return None, None, None
+    try:
+        model_path = os.path.join("models", "best_rf_model.pkl")
+        extractor_path = os.path.join("models", "feature_extractor.pkl")
+        le_path = os.path.join("models", "label_encoder.pkl")
+        
+        if all(os.path.exists(p) for p in [model_path, extractor_path, le_path]):
+            return joblib.load(model_path), joblib.load(extractor_path), joblib.load(le_path)
+        return None, None, None
+    except Exception as e:
+        st.error(f"Critical Error loading models: {e}")
+        return None, None, None
 
 model, extractor, le = load_resources()
 
@@ -88,22 +94,27 @@ url_input = st.text_input("", placeholder="Entrez l'URL à analyser (ex: http://
 if st.button("Analyser l'URL"):
     if url_input:
         with st.spinner("Analyse sémantique et structurelle..."):
-            features = extractor.transform(pd.Series([url_input]))
-            pred_idx = model.predict(features)[0]
-            probs = model.predict_proba(features)[0]
-            label = le.inverse_transform([pred_idx])[0]
-            confidence = probs[pred_idx]
-            
-            color = "#238636" if label == "benign" else "#da3633"
-            st.markdown(f"""
-                <div style="background-color: {color}22; border: 2px solid {color}; padding: 30px; border-radius: 12px; text-align: center; margin-top: 20px;">
-                    <h1 style="color: {color}; margin: 0; font-size: 3rem;">{label.upper()}</h1>
-                    <p style="font-size: 1.5rem; margin-top: 10px;">Fiabilité du modèle : <b>{confidence*100:.2f}%</b></p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            st.write("#### Probabilités par Catégorie")
-            st.bar_chart(pd.DataFrame({'Confiance': probs}, index=le.classes_))
+            if model is not None and extractor is not None:
+                # Clean URL before extraction
+                cleaned_url = clean_url(url_input)
+                features = extractor.transform(pd.Series([cleaned_url]))
+                pred_idx = model.predict(features)[0]
+                probs = model.predict_proba(features)[0]
+                label = le.inverse_transform([pred_idx])[0]
+                confidence = probs[pred_idx]
+                
+                color = "#238636" if label == "benign" else "#da3633"
+                st.markdown(f"""
+                    <div style="background-color: {color}22; border: 2px solid {color}; padding: 30px; border-radius: 12px; text-align: center; margin-top: 20px;">
+                        <h1 style="color: {color}; margin: 0; font-size: 3rem;">{label.upper()}</h1>
+                        <p style="font-size: 1.5rem; margin-top: 10px;">Fiabilité du modèle : <b>{confidence*100:.2f}%</b></p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                st.write("#### Probabilités par Catégorie")
+                st.bar_chart(pd.DataFrame({'Confiance': probs}, index=le.classes_))
+            else:
+                st.error("Les ressources du modèle n'ont pas pu être chargées. Vérifiez le dossier 'models/'.")
     else: st.warning("Veuillez saisir une URL.")
 
 st.markdown("<hr class='hr-glow'>", unsafe_allow_html=True)
