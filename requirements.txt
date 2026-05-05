@@ -1,10 +1,10 @@
 pandas
 numpy
-scikit-learn
-xgboost
+scikit-learn==1.8.0
+xgboost==3.2.0
 matplotlib
 seaborn
 tqdm
-joblib
-streamlit
-scipy
+joblib==1.5.2
+streamlit==1.52.0
+scipy==1.16.3
